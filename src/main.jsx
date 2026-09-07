@@ -140,7 +140,7 @@ function AuthScreen({ onLogin, onEmailAuth, onGoogleLogin, onGithubLogin }) {
       <div className="relative w-full max-w-[430px]">
         <div className="mb-8 flex items-center justify-center gap-3">
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#3d2eb1] shadow-[0_0_35px_rgba(61,46,177,.35)]"><ShieldCheck size={22} /></div>
-          <div><div className="text-sm font-black tracking-tight">CYBERSHIELD</div><div className="text-[10px] font-bold tracking-[.28em] text-[#8f8b8d]">AI SECURITY</div></div>
+          <div><div className="text-sm font-black tracking-tight">AI KAVACH</div><div className="text-[10px] font-bold tracking-[.28em] text-[#8f8b8d]">THREAT DEFENSE</div></div>
         </div>
         <div className="rounded-[28px] border border-white/[.08] bg-[#141414] p-6 shadow-2xl sm:p-8">
           <div className="mb-7">
@@ -177,11 +177,11 @@ function AuthScreen({ onLogin, onEmailAuth, onGoogleLogin, onGithubLogin }) {
           </>}
           {mode === "login" && <div className="mt-6 rounded-2xl border border-[#8049D9]/20 bg-[#8049D9]/[.07] p-3 text-[11px] leading-5 text-[#aaa6a8]">Demo access: <span className="font-semibold text-[#d4c5ff]">analyst@cybershield.ai</span> / <span className="font-semibold text-[#d4c5ff]">shield2026</span></div>}
           <div className="mt-6 flex items-center justify-center gap-2 text-xs text-[#777477]">
-            <span>{mode === "login" ? "New to CyberShield?" : "Already have an account?"}</span>
+            <span>{mode === "login" ? "New to AI KAVACH?" : "Already have an account?"}</span>
             <button type="button" onClick={switchMode} className="font-semibold text-[#bda6ff] hover:text-white">{mode === "login" ? "Register" : "Sign in"}</button>
           </div>
         </div>
-        <p className="mt-6 text-center text-[10px] text-[#555155]">Protected workspace access • CyberShield AI</p>
+        <p className="mt-6 text-center text-[10px] text-[#555155]">Protected workspace access • AI KAVACH</p>
       </div>
     </main>
   );
@@ -313,8 +313,8 @@ function App() {
               <ShieldCheck size={20} />
             </div>
             <div>
-              <div className="text-sm font-black tracking-tight">CYBERSHIELD</div>
-              <div className="text-[10px] font-bold tracking-[.28em] text-[#8f8b8d]">AI SECURITY</div>
+              <div className="text-sm font-black tracking-tight">AI KAVACH</div>
+              <div className="text-[10px] font-bold tracking-[.28em] text-[#8f8b8d]">THREAT DEFENSE</div>
             </div>
           </div>
           <button className="lg:hidden text-[#8f8b8d]" onClick={() => setMobileOpen(false)}><X size={20}/></button>
@@ -499,7 +499,7 @@ function App() {
           </div>
 
           <footer className="mt-8 flex flex-col justify-between gap-2 border-t border-white/[.05] py-6 text-[10px] text-[#555155] sm:flex-row">
-            <span>CYBERSHIELD AI • Threat Intelligence Workspace</span>
+            <span>AI KAVACH • Threat Intelligence Workspace</span>
             <span className="flex items-center gap-1"><Activity size={11} className="text-[#4dd59a]"/> All systems operational</span>
           </footer>
         </section>
