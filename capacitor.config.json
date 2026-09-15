@@ -1,0 +1,9 @@
+{
+  "appId": "com.aikavach.app",
+  "appName": "AI KAVACH",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}

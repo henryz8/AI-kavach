@@ -6,9 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "android:sync": "vite build && npx cap sync android",
+    "android:build": "vite build && npx cap sync android && cd android && gradlew assembleDebug",
+    "android:open": "npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
     "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^2.0.36",
     "@supabase/ssr": "^0.12.6",
