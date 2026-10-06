@@ -77,16 +77,18 @@ export function IncidentsView({ onOpenEvidence, notify }) {
     setLoading(true);
     try {
       const data = await api.getIncidents();
-      if (Array.isArray(data) && data.length > 0) {
-        const mapped = data.map((inc) => ({
-          id: `INC-2026-${String(inc.id).padStart(3, "0")}`,
-          title: inc.details || `${inc.incident_type} against ${inc.target}`,
-          target: inc.target,
-          action: inc.action_taken,
+      const items = Array.isArray(data) ? data : (data?.items || []);
+      if (items.length > 0) {
+        const mapped = items.map((inc) => ({
+          id: inc.reference || `INC-2026-${String(inc.id).slice(-4)}`,
+          title: inc.title || inc.summary || "Security Incident",
+          target: inc.summary?.slice(0, 60) || "Detected Vector",
+          action: inc.status === "Contained" ? "Contained" : (inc.severity === "Critical" ? "Immediate Triage" : "Review Evidence"),
           analyst: "AI KAVACH Sentinel",
-          severity: inc.incident_type.includes("BLOCK") ? "CRITICAL" : "HIGH",
-          status: inc.status === "COMPLETED" ? "RESOLVED" : inc.status,
-          timestamp: inc.timestamp ? new Date(inc.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Recently"
+          severity: (inc.severity || "HIGH").toUpperCase(),
+          status: (inc.status || "OPEN").toUpperCase() === "OPEN" ? "IN_PROGRESS" : inc.status.toUpperCase(),
+          timestamp: inc.first_seen_at ? new Date(inc.first_seen_at).toLocaleDateString([], { month: "short", day: "numeric" }) : "Recently",
+          raw: inc
         }));
         setIncidents(mapped);
         notify("Incident ledger synchronized with database.");

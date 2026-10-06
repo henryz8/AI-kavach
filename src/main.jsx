@@ -883,6 +883,7 @@ function App() {
   const [scanModalOpen, setScanModalOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [threatList, setThreatList] = useState(threats);
+  const [dbStats, setDbStats] = useState(null);
   const [notificationsList, setNotificationsList] = useState([
     { id: "n1", title: "Phishing Website Blocked", desc: "Perimeter DNS blocked access to login-secure-account.xyz.", time: "2m ago", type: "CRITICAL", read: false },
     { id: "n2", title: "Anomalous Login Attempt", desc: "Detected unfamiliar device IP: 198.51.100.24 targeting analyst account.", time: "15m ago", type: "HIGH", read: false },
@@ -925,14 +926,14 @@ function App() {
   };
 
   const initials = useMemo(() => {
-    const parts = (currentUser.name || "Analyst").trim().split(" ");
+    const parts = (currentUser?.name || "Analyst").trim().split(" ");
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return (parts[0] || "A").slice(0, 2).toUpperCase();
   }, [currentUser]);
 
-  useEffect(() => {
+  const loadData = () => {
     // Load live threats from database via backend API
     api.getThreats()
       .then((data) => {
@@ -943,7 +944,9 @@ function App() {
             UserRound,
             FileWarning,
             Bug,
-            AlertTriangle
+            AlertTriangle,
+            ShieldAlert,
+            MessageSquare
           };
           const mapped = data.map((t) => ({
             id: t.id,
@@ -959,7 +962,20 @@ function App() {
           setThreatList(mapped);
         }
       })
-      .catch((e) => console.warn("Initial threats sync warning:", e.message));
+      .catch((e) => console.warn("Live threats sync warning:", e.message));
+
+    // Load live aggregate telemetry stats from database
+    api.getStatistics()
+      .then((res) => {
+        if (res && res.stats) {
+          setDbStats(res);
+        }
+      })
+      .catch((e) => console.warn("Live stats sync warning:", e.message));
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -1176,8 +1192,8 @@ function App() {
           <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/[.06] bg-white/[.025] p-3">
             <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-[#8049D9] to-[#deaff6] text-xs font-black text-white">{initials}</div>
             <div className="min-w-0">
-              <div className="truncate text-xs font-semibold">{currentUser.name}</div>
-              <div className="truncate text-[10px] text-[#666365]">{currentUser.email}</div>
+              <div className="truncate text-xs font-semibold">{currentUser?.name || "Analyst"}</div>
+              <div className="truncate text-[10px] text-[#666365]">{currentUser?.email || "analyst@cybershield.ai"}</div>
             </div>
             <button aria-label="Sign out" title="Sign out" onClick={logout} className="ml-auto rounded-lg p-1.5 text-[#666365] hover:bg-white/[.06] hover:text-white"><LogOut size={15} /></button>
           </div>
@@ -1214,7 +1230,7 @@ function App() {
           </div>
           <button onClick={() => notify("Help center opened.")} className="hidden rounded-2xl border border-white/[.06] p-2.5 text-[#8f8b8d] hover:bg-white/[.05] sm:block"><CircleHelp size={17}/></button>
           <div className="hidden h-8 w-px bg-white/[.07] sm:block"/>
-          <div className="hidden text-right sm:block"><div className="text-xs font-semibold">{currentUser.name.split(" ")[0]}</div><div className="text-[10px] text-[#666365]">Online</div></div>
+          <div className="hidden text-right sm:block"><div className="text-xs font-semibold">{(currentUser?.name || "Analyst").split(" ")[0]}</div><div className="text-[10px] text-[#666365]">Online</div></div>
           <div className="grid h-9 w-9 place-items-center rounded-full bg-[#242424] text-xs font-black">{initials}</div>
         </header>
 
@@ -1223,6 +1239,7 @@ function App() {
             <OverviewView
               currentUser={currentUser}
               threatList={threatList}
+              dbStats={dbStats}
               query={query}
               handleThreatAction={handleThreatAction}
               handleExecuteResponseWorkflow={handleExecuteResponseWorkflow}

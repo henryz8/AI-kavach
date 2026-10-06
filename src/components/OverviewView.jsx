@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Activity, AlertTriangle, ArrowUpRight, BrainCircuit, Check,
   ChevronDown, ExternalLink, FileWarning, Fingerprint, Globe2,
@@ -77,6 +77,7 @@ function RiskBadge({ level }) {
 export function OverviewView({
   currentUser,
   threatList,
+  dbStats,
   query,
   handleThreatAction,
   handleExecuteResponseWorkflow,
@@ -87,30 +88,49 @@ export function OverviewView({
 }) {
   const [timeRange, setTimeRange] = useState("30d");
 
-  const totalTelemetry = 1260 + threatList.length;
+  const stats = dbStats?.stats;
+  const totalTelemetry = stats?.totals?.scans ?? threatList.length;
+  const criticalCount = stats?.scans_by_severity?.Critical ?? threatList.filter(t => t.level === "CRITICAL").length;
+  const highRiskCount = stats?.totals?.high_risk_scans ?? threatList.filter(t => t.level === "HIGH" || t.level === "CRITICAL").length;
   const criticalActive = threatList.filter(t => t.level === "CRITICAL" && !t.isContained).length;
-  const criticalTotal = 24 + criticalActive;
-  const containedCount = threatList.filter(t => t.isContained).length;
-  const containedTotal = 742 + containedCount;
+  const containedCount = stats?.actions_by_status?.simulated ?? stats?.actions_by_status?.succeeded ?? threatList.filter(t => t.isContained).length;
+  const avgRiskScore = stats?.totals?.average_risk_score ? `${stats.totals.average_risk_score}%` : "98.4%";
 
   const dynamicRiskData = useMemo(() => {
-    const critical = threatList.filter(t => t.level === "CRITICAL").length + 20;
-    const high = threatList.filter(t => t.level === "HIGH").length + 80;
-    const medium = threatList.filter(t => t.level === "MEDIUM").length + 210;
-    const safe = 960;
+    if (stats?.scans_by_severity) {
+      return [
+        { name: "Critical", value: stats.scans_by_severity.Critical || 0, color: "#ff6b81" },
+        { name: "High", value: stats.scans_by_severity.High || 0, color: "#f4b860" },
+        { name: "Medium", value: stats.scans_by_severity.Medium || 0, color: "#a98be8" },
+        { name: "Safe", value: stats.scans_by_severity.Safe || 0, color: "#4dd59a" }
+      ];
+    }
+    const critical = threatList.filter(t => t.level === "CRITICAL").length;
+    const high = threatList.filter(t => t.level === "HIGH").length;
+    const medium = threatList.filter(t => t.level === "MEDIUM").length;
+    const safe = threatList.filter(t => t.level === "SAFE").length;
     return [
-      { name: "Critical", value: critical, color: "#ff6b81" },
-      { name: "High", value: high, color: "#f4b860" },
-      { name: "Medium", value: medium, color: "#a98be8" },
-      { name: "Safe", value: safe, color: "#4dd59a" }
+      { name: "Critical", value: critical || 1, color: "#ff6b81" },
+      { name: "High", value: high || 1, color: "#f4b860" },
+      { name: "Medium", value: medium || 1, color: "#a98be8" },
+      { name: "Safe", value: safe || 1, color: "#4dd59a" }
     ];
-  }, [threatList]);
+  }, [stats, threatList]);
 
   const filtered = query
     ? threatList.filter((t) => `${t.title} ${t.source} ${t.level}`.toLowerCase().includes(query.toLowerCase()))
     : threatList;
 
-  const currentChartData = chartDataSets[timeRange] || chartDataSets["30d"];
+  const currentChartData = useMemo(() => {
+    if (stats?.trend && Array.isArray(stats.trend) && stats.trend.length > 0) {
+      return stats.trend.map(t => ({
+        name: t.day.slice(5),
+        threats: t.scans,
+        highRisk: t.high_risk
+      }));
+    }
+    return chartDataSets[timeRange] || chartDataSets["30d"];
+  }, [stats, timeRange]);
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -121,7 +141,7 @@ export function OverviewView({
             <Sparkles size={13} /> AI Security Workspace
           </div>
           <h1 className="text-3xl font-semibold tracking-[-.04em] sm:text-4xl text-white">
-            Good evening, {currentUser.name.split(" ")[0]}
+            Good evening, {(currentUser?.name || "Analyst").split(" ")[0]}
           </h1>
           <p className="mt-2 text-sm text-[#777477]">
             Your security environment is protected. Here’s what the AI found today.
@@ -139,10 +159,10 @@ export function OverviewView({
       {/* Top 4 Metrics */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[
-          ["TOTAL THREATS", totalTelemetry.toLocaleString(), "+12.8% telemetry", Activity],
-          ["CRITICAL", String(criticalTotal), `${criticalActive} require action`, AlertTriangle],
-          ["THREATS CONTAINED", containedTotal.toLocaleString(), "+18.4% containment rate", Globe2],
-          ["AI CONFIDENCE", "98.4%", "Neural Model Ensemble", BrainCircuit]
+          ["TOTAL THREATS SCANNED", totalTelemetry.toLocaleString(), `${highRiskCount} high-risk detected`, Activity],
+          ["CRITICAL SEVERITY", String(criticalCount), `${criticalActive} active in queue`, AlertTriangle],
+          ["ACTIONS EXECUTED", containedCount.toLocaleString(), "Containment response ledger", Globe2],
+          ["AVG RISK INDEX", avgRiskScore, "Live Heuristic & ML Model", BrainCircuit]
         ].map(([label, value, sub, Icon], i) => (
           <Card key={label} className="group relative overflow-hidden p-5 transition hover:-translate-y-1 hover:border-[#8049D9]/30">
             <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#8049D9]/10 blur-2xl opacity-0 transition group-hover:opacity-100" />

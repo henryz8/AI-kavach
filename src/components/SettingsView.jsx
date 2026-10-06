@@ -183,16 +183,17 @@ export function SettingsView({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-[#8049D9] to-[#deaff6] text-sm font-black text-white shadow-lg">
-              {currentUser.name
+              {((currentUser && currentUser.name) ? currentUser.name : "Analyst")
                 .split(" ")
+                .filter(Boolean)
                 .map((p) => p[0])
                 .join("")
                 .slice(0, 2)
                 .toUpperCase()}
             </div>
             <div>
-              <div className="text-sm font-bold text-white">{currentUser.name}</div>
-              <div className="text-xs text-[#888]">{currentUser.email}</div>
+              <div className="text-sm font-bold text-white">{currentUser?.name || "Security Analyst"}</div>
+              <div className="text-xs text-[#888]">{currentUser?.email || "analyst@cybershield.ai"}</div>
               <div className="mt-1 flex items-center gap-2">
                 <span className="rounded bg-[#8049D9]/20 px-2 py-0.5 text-[10px] font-bold text-[#bda6ff]">
                   Role: Tier 3 Security Analyst
